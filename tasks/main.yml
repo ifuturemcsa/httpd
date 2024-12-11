@@ -1,0 +1,31 @@
+---
+  - name: installing {{ web_pkg }} package 
+    ansible.builtin.yum:
+      name: "{{ web_pkg }}"
+      state: present
+
+  - name: starting and enableing the {{ web_svc }} Service
+    ansible.builtin.service:
+      name: "{{ web_svc }}"
+      state: started 
+      enabled: true
+
+  - name: copy the test.txt file 
+    ansible.builtin.copy:
+      src: test.txt
+      dest: /var/www/html/test.txt
+
+  - name: creating the sample web page using J2 template
+    ansible.builtin.template:
+      src: index.html.j2
+      dest: /var/www/html/index.html
+    notify:
+      - restart httpd service
+
+  - name: opening the port of {{ web_rule }} in Firewall 
+    ansible.posix.firewalld:
+      service: "{{ web_rule }}"
+      state: enabled
+      permanent: true
+      immediate: true
+
